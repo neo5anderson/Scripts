@@ -1,0 +1,96 @@
+#!/usr/bin/env python2
+#coding=utf-8
+
+import sys, os
+
+if 1 == len(sys.argv):
+    print 'target must specific'
+    sys.exit(-1)
+
+import re
+import markdown2
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+extras = [
+        'toc',
+        'strike',
+        # 'task_list',
+        'tables',
+        'footnotes',
+        'break-on-newline',
+        'tag-friendly',
+        'code-friendly',
+        'fenced-code-blocks'
+        ]
+
+res_base_url = '/bower'
+html_title = os.path.splitext(sys.argv[1])[0]
+
+html_header = '''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="generator" content="gendoc, by Neo">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML_TITLE</title>
+    <link rel="stylesheet" type="text/css" href="RES_BASE_URL/pygments/css/default.css" />
+    <link rel="stylesheet" type="text/css" href="RES_BASE_URL/github-markdown-css/github-markdown.css" />
+    <style>
+.markdown-body {
+    box-size: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 45px;
+}
+
+p img {
+    display: block;
+    margin: 0 auto;
+}
+    </style>
+</head>
+<body>
+<article class="markdown-body">
+'''
+
+html_footer = '''</article>
+<!--
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]}});
+</script>
+<script src="RES_BASE_URL/MathJax/MathJax.js?config=TeX-AMS_CHTML"></script>
+-->
+</body>
+</html>
+'''
+
+html_header = html_header.replace('HTML_TITLE', html_title).replace('RES_BASE_URL', res_base_url)
+html_footer = html_footer.replace('RES_BASE_URL', res_base_url)
+
+for v in sys.argv[1:]:
+    if os.path.exists(v):
+        content = open(v).read()
+        markdown_html = markdown2.markdown(content, extras=extras)
+
+        output = open(v + '.html', 'w')
+        output.write(html_header)
+
+        index = 0
+        if markdown_html.startswith('<h1'):
+            index = markdown_html.find('</h1>') + 5
+            output.write(markdown_html[:index])
+
+        if markdown_html.toc_html:
+            demote_toc = markdown_html.toc_html.splitlines()
+            output.write('\n'.join(demote_toc))
+
+        output.write(markdown_html[index:])
+        output.write(html_footer)
+        output.flush()
+        output.close()
+    else:
+        print '`' + v + '` not found'
+

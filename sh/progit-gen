@@ -1,0 +1,54 @@
+#!/bin/bash
+ 
+if [ -e out ]; then
+    rm -r out
+fi
+ 
+mkdir out
+mkdir out/figures
+ 
+if [ -d figures ]; then
+    for i in figures/*; do
+        cp $i out/${i/-tn/}
+    done
+else
+    echo figures folder not found
+    exit 404
+fi
+ 
+if [ ! -d zh ]; then
+    echo zh folder not found
+    exit 404
+fi
+ 
+cat > /tmp/header <<META_HEADER
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="generator" content="progit-gen, by Neo">
+    <title>Progit</title>
+    <style type="text/css">div {text-align: center;}</style>
+</head>
+<body>
+META_HEADER
+ 
+cat > /tmp/footer <<META_FOOTER
+</body>
+</html>
+META_FOOTER
+ 
+pushd zh > /dev/null
+for i in `find . -name *.markdown`; do
+    d=`dirname $i`
+    cat /tmp/header > $d.html
+    cat $i | awk '{if($1 == "Insert") {print "<div><img src=\"figures/" $2 "\">"; getline; print "<p>"$0"</p></div>\n"; getline} else {print $0}}' | markdown2 >> $d.html
+    cat /tmp/footer >> $d.html
+    echo -n ". "
+done
+mv *.html ../out/
+popd > /dev/null
+ 
+rm /tmp/header /tmp/footer
+echo "."
+

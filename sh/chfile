@@ -1,0 +1,25 @@
+#!/bin/bash
+
+here=$1
+there=$2
+ts=`date +%s`
+
+if [ ! -e "$here" ]; then
+    echo "$here" file not found!
+    exit -1
+fi
+
+if [ ! -e "$there" ]; then
+    echo "$there" file not found!
+    exit -1
+fi
+
+if [ "$here" == "$there" ]; then
+    echo two file is same!
+    exit 1
+fi
+
+mv "$here" $ts
+mv "$there" "$here"
+mv $ts "$there"
+
